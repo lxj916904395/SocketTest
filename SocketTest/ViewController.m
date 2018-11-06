@@ -11,10 +11,8 @@
 #import <netinet/in.h>
 #import <arpa/inet.h>
 
-//htons : 将一个无符号短整型的主机数值转换为网络字节顺序，不同cpu 是不同的顺序 (big-endian大尾顺序 , little-endian小尾顺序)
-#define SocketPort htons(8041)
-//inet_addr是一个计算机函数，功能是将一个点分十进制的IP转换成一个长整数型数
-#define SocketIP   inet_addr("127.0.0.1")
+
+
 
 @interface ViewController ()
 
@@ -38,6 +36,7 @@
     self.totalAttributeStr = [[NSMutableAttributedString alloc] init];
 }
 
+#pragma mark ***************** 开始连接
 - (IBAction)startConnect:(id)sender {
     /**
      1: 创建socket
@@ -66,13 +65,17 @@
      */
     
     struct sockaddr_in socketAdd;
-    socketAdd.sin_family = AF_INET;
-    socketAdd.sin_port = SocketPort;
+    socketAdd.sin_family = AF_INET;// IPv4连接
+    
+    //htons : 将一个无符号短整型的主机数值转换为网络字节顺序，不同cpu 是不同的顺序 (big-endian大尾顺序 , little-endian小尾顺序)
+    socketAdd.sin_port = htons(8041);//端口
     
     struct in_addr socket_idAdd;
-    socket_idAdd.s_addr  = SocketIP;
-    socketAdd.sin_addr   = socket_idAdd;
     
+    //inet_addr是一个计算机函数，功能是将一个点分十进制的IP转换成一个长整数型数
+    socket_idAdd.s_addr  = inet_addr("127.0.0.1");//连接地址
+    
+    socketAdd.sin_addr   = socket_idAdd;
     
     
     //建立连接
@@ -97,11 +100,13 @@
     }
      NSLog(@"连接成功");
     
+    //开始数据接收监听
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
         [self recMsg];
     });
 }
 
+#pragma mark ***************** 发送消息
 - (IBAction)sendMsg:(id)sender {
     
     /**
@@ -165,9 +170,7 @@
             
             [self showMsg:str msgType:1];
         });
-        
     }
-
 }
 
 #pragma mark - 接收信息和发送信息格式处理
